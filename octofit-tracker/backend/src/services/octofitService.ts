@@ -85,15 +85,17 @@ export async function suggestWorkouts(userEmail: string) {
   const goalFocus = user.fitnessGoal?.toLowerCase();
   const goalHasWorkout = workouts.some((workout) => workout.focus.toLowerCase() === goalFocus);
   const preferredFocus = goalHasWorkout ? goalFocus : activityFocus ?? goalFocus;
-  const reason = goalHasWorkout
-    ? `Matches your ${user.fitnessGoal} fitness goal.`
-    : recentType
-      ? `Recommended based on your recent ${recentType} activity.`
-      : `Matches your ${user.fitnessGoal} fitness goal.`;
-
   return workouts
     .sort((left, right) => Number(right.focus.toLowerCase() === preferredFocus) - Number(left.focus.toLowerCase() === preferredFocus))
-    .map((workout) => ({ ...workout, reason }));
+    .map((workout) => {
+      const focus = workout.focus.toLowerCase();
+      const reason = focus === goalFocus
+        ? `Matches your ${user.fitnessGoal} fitness goal.`
+        : activityFocus && focus === activityFocus
+          ? `Recommended based on your recent ${recentType} activity.`
+          : `Complements your ${user.fitnessGoal} goal with a ${workout.focus} focus.`;
+      return { ...workout, reason };
+    });
 }
 
 export { User };
