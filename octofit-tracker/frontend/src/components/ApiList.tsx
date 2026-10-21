@@ -1,11 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { getJson } from '../api/client.js';
 
 type ApiListProps<T> = {
   title: string;
   description: string;
-  endpoint: string;
-  collection: string;
+  load: () => Promise<T[]>;
   emptyMessage: string;
   renderItem: (item: T) => ReactNode;
 };
@@ -23,16 +21,14 @@ function itemKey(item: unknown, index: number) {
   return String(index);
 }
 
-export function ApiList<T>({ title, description, endpoint, collection, emptyMessage, renderItem }: ApiListProps<T>) {
+export function ApiList<T>({ title, description, load, emptyMessage, renderItem }: ApiListProps<T>) {
   const [state, setState] = useState<State<T>>({ status: 'loading' });
 
   useEffect(() => {
     let active = true;
-    getJson<Record<string, unknown>>(endpoint)
-      .then((response) => {
-        const items = response[collection];
-        if (!Array.isArray(items)) throw new Error('Unexpected response format');
-        if (active) setState({ status: 'success', items: items as T[] });
+    load()
+      .then((items) => {
+        if (active) setState({ status: 'success', items });
       })
       .catch((error: unknown) => {
         if (active) setState({
@@ -41,7 +37,7 @@ export function ApiList<T>({ title, description, endpoint, collection, emptyMess
         });
       });
     return () => { active = false; };
-  }, [collection, endpoint]);
+    }, [load]);
 
   return (
     <section className="card h-100">
