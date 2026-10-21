@@ -1,4 +1,14 @@
-import { CapabilityCard } from './CapabilityCard.js';
+import { ApiList } from './ApiList.js';
+
+type WorkoutSuggestion = { _id?: string; title: string; reason: string };
+
 export default function Workouts() {
-  return <CapabilityCard title="Workout suggestions" description="Recommend workouts from activity patterns." />;
+  return <ApiList<WorkoutSuggestion>
+    title="Workout suggestions"
+    description="Recommend workouts from activity patterns."
+    endpoint={`/api/workouts/suggestions/${encodeURIComponent('mona@example.com')}`}
+    collection="suggestions"
+    emptyMessage="No workout suggestions available."
+    renderItem={(workout) => <><strong>{workout.title}</strong>: {workout.reason}</>}
+  />;
 }
